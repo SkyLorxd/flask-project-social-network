@@ -1,6 +1,6 @@
 import json
 
-from app import app, USERS, models
+from app import app, USERS, models, POSTS
 from flask import request, Response
 from http import HTTPStatus
 
@@ -53,6 +53,33 @@ def get_user(user_id):
                 "email": user.email,
                 "total_reactions": user.total_reactions,
                 "posts": user.posts,
+            }
+        ),
+        HTTPStatus.OK,
+        mimetype="application.json",
+    )
+    return response
+
+
+@app.post("/posts/create")
+def create_post():
+    data = request.get_json()
+    id = len(POSTS)
+    author_id = data["author_id"]
+    text = data["text"]
+
+    if not models.Post.is_existing_user(author_id):
+        return Response(status=HTTPStatus.BAD_REQUEST)
+    post = models.Post(id, author_id, text=text, reactions=[])
+    POSTS.append(post)
+    USERS[int(author_id)].posts.append(id)
+    response = Response(
+        json.dumps(
+            {
+                "id": post.id,
+                "author_id": post.author_id,
+                "text": post.text,
+                "reactions": post.reactions,
             }
         ),
         HTTPStatus.OK,
