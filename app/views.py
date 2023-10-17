@@ -72,7 +72,35 @@ def create_post():
         return Response(status=HTTPStatus.BAD_REQUEST)
     post = models.Post(id, author_id, text=text, reactions=[])
     POSTS.append(post)
-    USERS[int(author_id)].posts.append(id)
+    for user in range(len(USERS)):
+        if USERS[user].id == int(author_id):
+            USERS[int(author_id)].posts.append(
+                {
+                    "id": post.id,
+                    "text": post.text,
+                    "reactions": post.reactions,
+                }
+            )
+    response = Response(
+        json.dumps(
+            {
+                "id": post.id,
+                "author_id": post.author_id,
+                "text": post.text,
+                "reactions": post.reactions,
+            }
+        ),
+        HTTPStatus.OK,
+        mimetype="application.json",
+    )
+    return response
+
+
+@app.get("/posts/<int:post_id>")
+def get_post(post_id):
+    if post_id < 0 or post_id >= len(POSTS):
+        return Response(status=HTTPStatus.NOT_FOUND)
+    post = POSTS[post_id]
     response = Response(
         json.dumps(
             {
