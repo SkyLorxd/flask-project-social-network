@@ -17,8 +17,7 @@ def user_create():
     first_name = data["first_name"]
     last_name = data["last_name"]
     email = data["email"]
-
-    if not models.User.is_valid_email(email):
+    if not models.User.is_valid_email(email):  # email format validity
         return Response(status=HTTPStatus.BAD_REQUEST)
     user = models.User(id, first_name, last_name, email, posts=[])
     USERS.append(user)
@@ -41,8 +40,8 @@ def user_create():
 
 @app.get("/user/<int:user_id>")
 def get_user(user_id):
-    if user_id > len(USERS) - 1 or user_id < 0:
-        return Response(status=HTTPStatus.NOT_FOUND)
+    if not models.User.is_existing_user(user_id):  # user existence validity
+        return Response(status=HTTPStatus.BAD_REQUEST)
     user = USERS[user_id]
     response = Response(
         json.dumps(
@@ -67,8 +66,7 @@ def create_post():
     id = len(POSTS)
     author_id = data["author_id"]
     text = data["text"]
-
-    if not models.Post.is_existing_user(author_id):
+    if not models.User.is_existing_user(author_id):  # user existence validity
         return Response(status=HTTPStatus.BAD_REQUEST)
     post = models.Post(id, author_id, text=text, reactions=[])
     POSTS.append(post)
@@ -98,8 +96,8 @@ def create_post():
 
 @app.get("/posts/<int:post_id>")
 def get_post(post_id):
-    if post_id < 0 or post_id >= len(POSTS):
-        return Response(status=HTTPStatus.NOT_FOUND)
+    if not models.Post.is_existing_post(post_id):  # post existence validity
+        return Response(status=HTTPStatus.BAD_REQUEST)
     post = POSTS[post_id]
     response = Response(
         json.dumps(
@@ -113,4 +111,35 @@ def get_post(post_id):
         HTTPStatus.OK,
         mimetype="application.json",
     )
+    return response
+
+
+@app.post("/posts/<int:post_id>/reaction")
+def add_reaction(post_id):  # todo: make avalible to add only one reaction per user
+    data = request.get_json()
+    user_id = data["user_id"]
+    reaction = data[
+        "reaction"
+    ]  # expect : "like", "funny", "heart", "cool", "fire", "angry", "cry"
+    if not models.Post.is_existing_post(post_id):  # post existence validity
+        return Response(status=HTTPStatus.BAD_REQUEST)
+    if not models.User.is_existing_user(user_id):  # user existence validity
+        return Response(status=HTTPStatus.BAD_REQUEST)
+    if not reaction in {
+        "like",
+        "funny",
+        "heart",
+        "cool",
+        "fire",
+        "angry",
+        "cry",
+    }:  # reaction existence validity
+        return Response(status=HTTPStatus.BAD_REQUEST)
+    for user in range(len(USERS)):
+        if USERS[user].id == int(user_id):
+            USERS[user].total_reactions += 1
+    for post in range(len(POSTS)):
+        if POSTS[post].id == int(post_id):
+            POSTS[post].reactions.append(reaction)
+    response = Response(status=HTTPStatus.OK)
     return response

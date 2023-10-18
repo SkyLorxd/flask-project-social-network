@@ -1,7 +1,7 @@
 # models.py
 import re
 
-from app import USERS
+from app import USERS, POSTS
 
 
 class User:
@@ -19,6 +19,13 @@ class User:
             return True
         return False
 
+    @staticmethod
+    def is_existing_user(author_id):
+        for user in range(len(USERS)):
+            if USERS[user].id == int(author_id):
+                return True
+        return False
+
 
 class Post:
     def __init__(self, id, author_id, reactions, text=""):
@@ -28,8 +35,8 @@ class Post:
         self.reactions = reactions
 
     @staticmethod
-    def is_existing_user(author_id):
-        for user in range(len(USERS)):
-            if USERS[user].id == int(author_id):
+    def is_existing_post(post_id):
+        for post in range(len(POSTS)):
+            if POSTS[post].id == int(post_id):
                 return True
         return False
