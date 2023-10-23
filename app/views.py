@@ -13,13 +13,13 @@ def index():
 @app.post("/user/create")
 def user_create():
     data = request.get_json()
-    id = len(USERS)
+    user_id = len(USERS)
     first_name = data["first_name"]
     last_name = data["last_name"]
     email = data["email"]
     if not models.User.is_valid_email(email):  # email format validity
         return Response(status=HTTPStatus.BAD_REQUEST)
-    user = models.User(id, first_name, last_name, email, posts=[])
+    user = models.User(user_id, first_name, last_name, email, posts=[])
     USERS.append(user)
     response = Response(
         json.dumps(
@@ -63,18 +63,19 @@ def get_user(user_id):
 @app.post("/posts/create")
 def create_post():
     data = request.get_json()
-    id = len(POSTS)
+    post_id = len(POSTS)
     author_id = data["author_id"]
     text = data["text"]
     if not models.User.is_existing_user(author_id):  # user existence validity
         return Response(status=HTTPStatus.BAD_REQUEST)
-    post = models.Post(id, author_id, text=text, reactions=[])
+    post = models.Post(post_id, author_id, text=text, reactions=[])
     POSTS.append(post)
     for user in range(len(USERS)):
         if USERS[user].id == int(author_id):
             USERS[int(author_id)].posts.append(
                 {
                     "id": post.id,
+                    "author_id": post.author_id,
                     "text": post.text,
                     "reactions": post.reactions,
                 }
@@ -115,7 +116,7 @@ def get_post(post_id):
 
 
 @app.post("/posts/<int:post_id>/reaction")
-def add_reaction(post_id):  # todo: make avalible to add only one reaction per user
+def add_reaction(post_id):  # todo: make available to add only one reaction per user
     data = request.get_json()
     user_id = data["user_id"]
     reaction = data[
@@ -125,7 +126,7 @@ def add_reaction(post_id):  # todo: make avalible to add only one reaction per u
         return Response(status=HTTPStatus.BAD_REQUEST)
     if not models.User.is_existing_user(user_id):  # user existence validity
         return Response(status=HTTPStatus.BAD_REQUEST)
-    if not reaction in {
+    if reaction not in {
         "like",
         "funny",
         "heart",
@@ -143,3 +144,44 @@ def add_reaction(post_id):  # todo: make avalible to add only one reaction per u
             POSTS[post].reactions.append(reaction)
     response = Response(status=HTTPStatus.OK)
     return response
+
+
+@app.get("/users/<int:user_id>/posts")
+def get_user_posts(user_id):
+    if not models.User.is_existing_user(user_id):  # user existence validity
+        return Response(status=HTTPStatus.BAD_REQUEST)
+    data = request.get_json()
+    sort = data["sort"]
+    if not (sort == "asc" or sort == "desc"):  # sort type validity
+        return Response(status=HTTPStatus.BAD_REQUEST)
+    user_posts = None
+    while not user_posts:
+        for user in range(len(USERS)):
+            if USERS[user].id == int(user_id):
+                user_posts = USERS[user].posts
+        break
+    for _ in range(len(user_posts) - 1):
+        for __ in range(len(user_posts) - 1):
+            if len(user_posts[__]["reactions"]) > len(user_posts[__ + 1]["reactions"]):
+                user_posts[__], user_posts[__ + 1] = (
+                    user_posts[__ + 1],
+                    user_posts[__],
+                )
+    if sort == "asc":
+        response = Response(
+            json.dumps(
+                {
+                    "posts": user_posts,
+                }
+            ),
+            HTTPStatus.OK,
+            mimetype="application.json",
+        )
+        return response
+    if sort == "desc":
+        response = Response(
+            json.dumps({"posts": [user_posts[::-1]]}),  # reversed list of user posts
+            HTTPStatus.OK,
+            mimetype="application.json",
+        )
+        return response

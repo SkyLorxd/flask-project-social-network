@@ -5,8 +5,8 @@ from app import USERS, POSTS
 
 
 class User:
-    def __init__(self, id, first_name, last_name, email, posts, total_reactions=0):
-        self.id = id
+    def __init__(self, user_id, first_name, last_name, email, posts, total_reactions=0):
+        self.id = user_id
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
@@ -20,16 +20,16 @@ class User:
         return False
 
     @staticmethod
-    def is_existing_user(author_id):
+    def is_existing_user(user_id):
         for user in range(len(USERS)):
-            if USERS[user].id == int(author_id):
+            if USERS[user].id == int(user_id):
                 return True
         return False
 
 
 class Post:
-    def __init__(self, id, author_id, reactions, text=""):
-        self.id = id
+    def __init__(self, post_id, author_id, reactions, text=""):
+        self.id = post_id
         self.author_id = author_id
         self.text = text
         self.reactions = reactions
