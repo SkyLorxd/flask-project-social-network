@@ -13,6 +13,19 @@ class User:
         self.total_reactions = total_reactions
         self.posts = posts
 
+    def __lt__(self, other):
+        return self.total_reactions < other.total_reactions
+
+    def to_dict(self):  # return object type User as a dictionary
+        return {
+            "id": self.id,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
+            "email": self.email,
+            "total_reactions": self.total_reactions,
+            "posts": self.posts,
+        }
+
     @staticmethod
     def is_valid_email(email):  # email validity check
         if re.match(r"[^@]+@[^@]+\.[^@]+", email):
@@ -33,6 +46,14 @@ class Post:
         self.author_id = author_id
         self.text = text
         self.reactions = reactions
+
+    def to_dict(self):  # return object type Post as a dictionary
+        return {
+            "id": self.id,
+            "author_id": self.author_id,
+            "text": self.text,
+            "reactions": self.reactions,
+        }
 
     @staticmethod
     def is_existing_post(post_id):  # post existence check

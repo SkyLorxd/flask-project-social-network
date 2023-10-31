@@ -24,16 +24,7 @@ def user_create():
     user = models.User(user_id, first_name, last_name, email, posts=[])
     USERS.append(user)
     response = Response(
-        json.dumps(
-            {
-                "id": user.id,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "email": user.email,
-                "total_reactions": user.total_reactions,
-                "posts": user.posts,
-            }
-        ),
+        json.dumps(user.to_dict()),  # return object type User as a dictionary
         HTTPStatus.OK,
         mimetype="application.json",
     )
@@ -47,16 +38,7 @@ def get_user(user_id):
 
     user = USERS[user_id]
     response = Response(
-        json.dumps(
-            {
-                "id": user.id,
-                "first_name": user.first_name,
-                "last_name": user.last_name,
-                "email": user.email,
-                "total_reactions": user.total_reactions,
-                "posts": user.posts,
-            }
-        ),
+        json.dumps(user.to_dict()),  # return object type User as a dictionary
         HTTPStatus.OK,
         mimetype="application.json",
     )
@@ -79,23 +61,11 @@ def create_post():
     for user in range(len(USERS)):  # adds post info to object type User
         if USERS[user].id == int(author_id):
             USERS[int(author_id)].posts.append(
-                {
-                    "id": post.id,
-                    "author_id": post.author_id,
-                    "text": post.text,
-                    "reactions": post.reactions,
-                }
-            )
+                post.to_dict()
+            )  # appends Post as a dictionary
 
     response = Response(
-        json.dumps(
-            {
-                "id": post.id,
-                "author_id": post.author_id,
-                "text": post.text,
-                "reactions": post.reactions,
-            }
-        ),
+        json.dumps(post.to_dict()),  # return object type Post as a dictionary
         HTTPStatus.OK,
         mimetype="application.json",
     )
@@ -109,14 +79,7 @@ def get_post(post_id):
 
     post = POSTS[post_id]
     response = Response(
-        json.dumps(
-            {
-                "id": post.id,
-                "author_id": post.author_id,
-                "text": post.text,
-                "reactions": post.reactions,
-            }
-        ),
+        json.dumps(post.to_dict()),  # return object type Post as a dictionary
         HTTPStatus.OK,
         mimetype="application.json",
     )
