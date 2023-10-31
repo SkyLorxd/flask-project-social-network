@@ -14,5 +14,6 @@ REACTIONS = [
     "cry",
 ]  # List of possible reaction types
 
-from app import views
+from app import general_views
 from app import models
+from app import views

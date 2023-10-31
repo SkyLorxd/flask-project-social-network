@@ -16,6 +16,9 @@ class User:
     def __lt__(self, other):
         return self.total_reactions < other.total_reactions
 
+    def repr(self):
+        return f"{self.id}) {self.last_name} {self.first_name}"
+
     def to_dict(self):  # return object type User as a dictionary
         return {
             "id": self.id,
@@ -54,6 +57,9 @@ class Post:
             "text": self.text,
             "reactions": self.reactions,
         }
+
+    def repr(self):
+        return f"{self.id}) text: {self.text}; reactions: {len(self.reactions)}"
 
     @staticmethod
     def is_existing_post(post_id):  # post existence check
