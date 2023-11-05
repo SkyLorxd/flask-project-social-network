@@ -42,6 +42,12 @@ class User:
                 return True
         return False
 
+    @staticmethod
+    def get_leaderboard():
+        return [
+            user.last_name + " " + user.first_name + " id:" + str(user.id) for user in USERS
+        ]
+
 
 class Post:
     def __init__(self, post_id, author_id, reactions, text=""):
