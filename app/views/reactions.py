@@ -5,27 +5,46 @@ from http import HTTPStatus
 
 @app.post("/posts/<int:post_id>/reaction")  # addition of reaction to post
 def add_reaction(post_id):
+    if not models.Post.is_active_post(post_id):
+        return Response(
+            f"Post with id {post_id} was deleted.", status=HTTPStatus.BAD_REQUEST
+        )
+
     if not models.Post.is_existing_post(post_id):  # post existence validity
-        return Response(status=HTTPStatus.BAD_REQUEST)
+        return Response(
+            f"Post with id: {post_id} does not exist.", status=HTTPStatus.BAD_REQUEST
+        )
 
     data = request.get_json()
     user_id = data["user_id"]
 
     if not models.User.is_existing_user(user_id):  # user existence validity
-        return Response(status=HTTPStatus.BAD_REQUEST)
+        return Response(
+            f"User with id: {user_id} does not exist", status=HTTPStatus.BAD_REQUEST
+        )
+
+    if not models.User.is_active(user_id):  # user status validity
+        return Response(
+            f"User with id: {user_id} was deleted", status=HTTPStatus.BAD_REQUEST
+        )
+
     for post in range(len(POSTS)):  # check if user has already reacted to this post
         if POSTS[post].id == int(post_id):
             for reaction in range(len(POSTS[post].reactions)):
                 if POSTS[post].reactions[reaction].get("user_id") == user_id:
-                    return Response(status=HTTPStatus.BAD_REQUEST)
+                    return Response(
+                        f"User with id: {user_id} has already reacted to this post",
+                        status=HTTPStatus.BAD_REQUEST,
+                    )
 
     reaction_type = data[
         "reaction"
     ]  # expect : "like", "funny", "heart", "cool", "fire", "angry", "cry"
+
     if not models.Reaction.is_existing_reaction(  # reaction type validity
         reaction_type
     ):
-        return Response(status=HTTPStatus.BAD_REQUEST)
+        return Response("Wrong type of reaction.", status=HTTPStatus.BAD_REQUEST)
 
     reaction = models.Reaction(post_id, user_id, reaction_type)
 
@@ -42,6 +61,9 @@ def add_reaction(post_id):
         if POSTS[post].id == int(post_id):
             POSTS[post].reactions.append(reaction.to_dict())
 
-    response = Response(status=HTTPStatus.OK)
+    response = Response(
+        f"You have successfully reacted to the post with reaction: {reaction_type}",
+        status=HTTPStatus.OK,
+    )
 
     return response
