@@ -67,7 +67,7 @@ class User:
         ]
 
 
-class Post:  # todo: add posts status attribute
+class Post:
     def __init__(self, post_id, author_id, reactions, status, text=""):
         self.id = post_id
         self.author_id = author_id
